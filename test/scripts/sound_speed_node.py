@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import rospy, os, sys
+from geometry_msgs.msg import Twist 
+#from sound_play.msg import SoundRequest
+from sound_play.libsoundplay import SoundClient
+
+
+def callback(msg):
+
+     #Create a sound client instance
+     sound_client = SoundClient()
+     
+     # speed
+     x = msg.linear.x
+     
+     # partition of speed ranges, if the speed increase, the frequence increase
+     if x >= 0.6:
+          t = 4   #Hz
+     elif x >= 0.4 and x < 0.6:
+          t = 3
+     elif x >= 0.2 and x < 0.4:
+          t = 2
+     elif x >= 0.0 and x < 0.2:
+          t = 1
+     
+     #controle the frequence of the loop
+     rate = rospy.Rate(t)
+     
+     #monitoring speed ~ frequence
+     rospy.loginfo('t: {}, x: {}'.format(t,x))
+     
+     # play the sound
+     sound_client.playWave('beep-05.wav')
+     
+     rate.sleep()
+
+def main():
+     
+     # Initiate the node 'sound_speed'
+     rospy.init_node('sound_speed')
+ 
+     # subscribe to the topic "/cmd_vel"
+     rospy.Subscriber("/cmd_vel", Twist, callback, queue_size=1)
+     
+     rospy.spin()
+     
+if __name__ == '__main__':
+     main()
